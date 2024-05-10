@@ -13,6 +13,7 @@ import java.util.List;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private Long userId;
 
     @Column(unique = true) //email needs to be unique
@@ -31,10 +32,10 @@ public class User {
     //orphan removal ensures post is removed from the database
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Post> posts = new ArrayList<>();
-
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Follow> following = new ArrayList<>();
-
+ //cascade all means that when a user is deleted, all associated posts will be deleted too
     @OneToMany(mappedBy = "followed", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Follow> followers = new ArrayList<>();
 

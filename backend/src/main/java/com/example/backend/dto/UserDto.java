@@ -12,7 +12,8 @@ public class UserDto {
     private String lastName;
     private String bio;
     private String profilePicture;
-    // No password field included for security reasons
+    private String password;
+
 
 }
 
