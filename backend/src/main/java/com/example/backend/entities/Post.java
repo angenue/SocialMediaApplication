@@ -1,5 +1,6 @@
 package com.example.backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -7,11 +8,7 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-@NoArgsConstructor
-@Getter
-@Setter
-@ToString
-@EqualsAndHashCode
+@Data
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,6 +16,7 @@ public class Post {
 
     @ManyToOne //many posts can belong to one user
     @JoinColumn(name = "userId")
+    @JsonIgnore //avoids infinite recursion in bidirectional relationship
     private User user;
 
     private int numLikes;
@@ -28,7 +26,9 @@ public class Post {
     @Temporal(TemporalType.TIMESTAMP)
     private Date created;
 
-    @OneToMany
-    @JoinColumn(name = "comment_id")
+    //lazy fetch means the comments will only be fetched when explicitly accessed
+    //cascade type all means all operations performed in post will also be performed in comments
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "commentId")
     private List<Comment> comments; //posts have a list of comments
 }

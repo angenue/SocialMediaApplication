@@ -7,10 +7,7 @@ import java.util.Date;
 
 @Entity
 @NoArgsConstructor
-@Getter
-@Setter
-@ToString
-@EqualsAndHashCode
+@Data
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,5 +19,10 @@ public class Comment {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date created;
+
+    // User who posted the comment
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
 }
