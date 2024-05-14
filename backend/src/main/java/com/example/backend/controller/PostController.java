@@ -27,5 +27,5 @@ public class PostController {
     public int getLikes(@PathVariable Long postId) {
         return postService.getLikes(postId);
     }
-    
+
 }
