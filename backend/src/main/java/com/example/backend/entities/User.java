@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @NoArgsConstructor
@@ -38,5 +39,12 @@ public class User {
  //cascade all means that when a user is deleted, all associated posts will be deleted too
     @OneToMany(mappedBy = "followed", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Follow> followers = new ArrayList<>();
+
+    //keep tracks of users who liked the post
+    @ManyToMany(mappedBy = "likedUsers")
+    private Set<Post> likedPosts;
+
+    @OneToMany(mappedBy = "user")
+    private List<Comment> comments;
 
 }

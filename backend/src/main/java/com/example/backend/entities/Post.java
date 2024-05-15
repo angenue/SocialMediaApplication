@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -20,7 +21,8 @@ public class Post {
     private User user;
 
     private int numLikes;
-    private boolean likedByCurrentUser; //allows user to like and unlike
+    @ManyToMany
+    private Set<User> likedUsers;
     private String content;
 
     @Temporal(TemporalType.TIMESTAMP)
