@@ -2,6 +2,8 @@ package com.example.backend.service;
 
 import com.example.backend.dto.UserDto;
 
+import java.util.List;
+
 public interface UserService {
 
     public void createUser(UserDto userDto);
@@ -14,6 +16,8 @@ public interface UserService {
     void deleteUser(Long id);
 
     void followUser(Long followerId, Long followedId); // new method
+
+    List<UserDto> getFollowers(Long userId);
 }
 
 

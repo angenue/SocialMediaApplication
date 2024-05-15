@@ -7,6 +7,8 @@ import com.example.backend.repository.UserRepo;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -70,7 +72,7 @@ public class UserServiceImpl implements UserService {
         userDto.setProfilePicture(user.getProfilePicture());
         return userDto;
     }
-        public void followUser(Long followerId, Long followedId) {// Return the UserDto objectpublic void followUser(Long followerId, Long followedId) {
+    public void followUser(Long followerId, Long followedId) {// Return the UserDto objectpublic void followUser(Long followerId, Long followedId) {
     User follower = userRepo.findById(followerId).orElseThrow(); // Retrieve the follower user
     User followed = userRepo.findById(followedId).orElseThrow(); // Retrieve the followed user
 
@@ -85,5 +87,26 @@ public class UserServiceImpl implements UserService {
     userRepo.save(follower); // Save the follower user
     userRepo.save(followed); // Save the followed user
     }
+
+    @Override
+    public List<UserDto> getFollowers(Long userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow();
+
+        return user.getFollowers().stream()
+                .map(follower -> {
+                    UserDto dto = new UserDto();
+                    dto.setUserId(follower.getFollower().getUserId());
+                    dto.setUsername(follower.getFollower().getUsername());
+                    dto.setFirstName(follower.getFollower().getFirstName());
+                    dto.setLastName(follower.getFollower().getLastName());
+                    dto.setEmail(follower.getFollower().getEmail());
+                    dto.setBio(follower.getFollower().getBio());
+                    dto.setProfilePicture(follower.getFollower().getProfilePicture());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
 }
 
