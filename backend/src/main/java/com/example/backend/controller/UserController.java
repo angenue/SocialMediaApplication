@@ -23,4 +23,10 @@ public class UserController {
     public void createUser(@RequestBody UserDto userDto) {
         userService.createUser(userDto);
     }
+
+    @PostMapping("/{followerId}/follow/{followedId}")
+    public void followUser(@PathVariable Long followerId, @PathVariable Long followedId) {
+        userService.followUser(followerId, followedId);
+    }
 }
+

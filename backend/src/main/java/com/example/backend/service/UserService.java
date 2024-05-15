@@ -12,6 +12,8 @@ public interface UserService {
     UserDto getUserByUsername(String username); // new method
 
     void deleteUser(Long id);
+
+    void followUser(Long followerId, Long followedId); // new method
 }
 
 

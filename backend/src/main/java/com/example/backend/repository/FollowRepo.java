@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface FollowRepo extends JpaRepository<Follow, Long> {
+
+
 }
