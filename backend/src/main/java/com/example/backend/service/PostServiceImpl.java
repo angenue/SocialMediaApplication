@@ -79,9 +79,9 @@ public class PostServiceImpl implements PostService {
 
 
         // if post is not liked by the current user
-        if (!post.isLikedByCurrentUser()) {
+        if (!post.getLikedUsers().contains(user)) { //checks if user is in the list of liked users
+            post.getLikedUsers().add(user); //add user to list of liked users
             post.setNumLikes(post.getNumLikes() + 1); //increase like count
-            post.setLikedByCurrentUser(true);
             postRepo.save(post);
         }
     }
@@ -93,10 +93,10 @@ public class PostServiceImpl implements PostService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        //if post is not liked by the current user
-        if (post.isLikedByCurrentUser()) {
-            post.setNumLikes(post.getNumLikes() - 1); //remove a like
-            post.setLikedByCurrentUser(false);
+        // Check if the user has liked the post
+        if (post.getLikedUsers().contains(user)) {
+            post.getLikedUsers().remove(user); // Remove the user from the set of users who have liked the post
+            post.setNumLikes(post.getNumLikes() - 1); // Decrease like count
             postRepo.save(post);
         }
     }
@@ -116,12 +116,10 @@ public class PostServiceImpl implements PostService {
         postDto.setContent(post.getContent());
         postDto.setCreated(post.getCreated());
         postDto.setNumLikes(post.getNumLikes());
-        postDto.setLikedByCurrentUser(post.isLikedByCurrentUser());
 
-        UserDto userDto = new UserDto();
-        userDto.setUsername(post.getUser().getUsername());
+        // Set the username of the user who created the post
+        postDto.setUsername(post.getUser().getUsername());
 
-        postDto.setUser(userDto);
         return postDto;
     }
 }
