@@ -6,10 +6,14 @@ import lombok.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
-@Data
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,4 +37,9 @@ public class Post {
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "commentId")
     private List<Comment> comments; //posts have a list of comments
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(postId, content, created, numLikes);
+    }
 }

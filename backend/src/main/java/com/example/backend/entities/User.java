@@ -6,11 +6,14 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
 @NoArgsConstructor
-@Data //used to  generate getters, setters, toString, hashCode, and equals methods.
+@Getter
+@Setter
+@ToString
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,5 +49,10 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<Comment> comments;
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(userId, email, username, firstName, lastName, bio, profilePicture, password);
+    }
 
 }
