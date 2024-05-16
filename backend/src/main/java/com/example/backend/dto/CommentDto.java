@@ -11,5 +11,6 @@ public class CommentDto {
     private int numLikes;
     private boolean likedByCurrentUser;
     private Date created;
+    private String username;
     private UserDto user; // Include user information in the comment DTO
 }

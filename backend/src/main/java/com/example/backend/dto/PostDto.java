@@ -13,4 +13,5 @@ public class PostDto {
     private boolean likedByCurrentUser;
     private String content;
     private Date created;
+    private String username;
 }
