@@ -25,4 +25,14 @@ public class Comment {
     @JoinColumn(name = "user_id")
     private User user;
 
+    // Comment that this comment is a reply to
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_comment_id")
+    private Comment parentComment;
+
+    // User that this comment is a reply to
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "replied_to_user_id")
+    private User repliedTo;
+
 }
