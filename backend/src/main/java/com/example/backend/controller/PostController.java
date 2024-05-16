@@ -1,6 +1,7 @@
 package com.example.backend.controller;
 
 import com.example.backend.dto.PostDto;
+import com.example.backend.dto.UserDto;
 import com.example.backend.service.PostService;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,5 +55,10 @@ public class PostController {
     @GetMapping("/{postId}/likes")
     public int getLikes(@PathVariable Long postId) {
         return postService.getLikes(postId);
+    }
+
+    @GetMapping("/{postId}/likedUsers")
+    public List<UserDto> getLikedUsers(@PathVariable Long postId) {
+        return postService.getLikedUsers(postId);
     }
 }
