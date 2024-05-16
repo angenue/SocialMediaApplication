@@ -13,7 +13,6 @@ import java.util.Set;
 @NoArgsConstructor
 @Getter
 @Setter
-@ToString
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,9 +49,24 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Comment> comments;
 
+
+    //hashcode and tostring updated to prevent infinite recursion caused by circular references between user and post
     @Override
     public int hashCode() {
         return Objects.hash(userId, email, username, firstName, lastName, bio, profilePicture, password);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId=" + userId +
+                ", email='" + email + '\'' +
+                ", username='" + username + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", bio='" + bio + '\'' +
+                ", profilePicture='" + profilePicture + '\'' +
+                '}';
     }
 
 }
