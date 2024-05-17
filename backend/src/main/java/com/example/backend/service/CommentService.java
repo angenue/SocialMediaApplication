@@ -7,10 +7,9 @@ import java.util.List;
 
 public interface CommentService {
     CommentDto addComment(Long postId, CommentDto commentDto);
-    CommentDto addReply(Long parentCommentId, CommentDto replyDto);
     CommentDto getCommentById(Long id);
     List<CommentDto> getAllCommentsByPostId(Long postId);
     void deleteComment(Long id);
-    List<CommentDto> getReplies(Long commentId);
-    int getCommentCount(Long postId);
+    void likeComment(Long commentId, Long userId);
+    void unlikeComment(Long commentId, Long userId);
 }

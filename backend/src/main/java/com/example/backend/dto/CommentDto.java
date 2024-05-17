@@ -15,6 +15,4 @@ public class CommentDto {
     private Long postId; // ID of the post that the comment belongs to
     private Long userId; // ID of the user who posted the comment
     private String username; // username of the user who posted the comment
-    private Long parentCommentId; // ID of the comment that this comment is a reply to
-    private String repliedToUsername; // username of the user that this comment is a reply to
 }

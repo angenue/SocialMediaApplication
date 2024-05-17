@@ -24,11 +24,6 @@ public class CommentController {
         return ResponseEntity.ok(commentService.addComment(postId, commentDto));
     }
 
-    @PostMapping("/{parentCommentId}/replies")
-    public ResponseEntity<CommentDto> addReply(@PathVariable Long parentCommentId, @RequestBody CommentDto replyDto) {
-        return ResponseEntity.ok(commentService.addReply(parentCommentId, replyDto));
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<CommentDto> getCommentById(@PathVariable Long id) {
         return ResponseEntity.ok(commentService.getCommentById(id));
@@ -39,14 +34,22 @@ public class CommentController {
         return ResponseEntity.ok(commentService.getAllCommentsByPostId(postId));
     }
 
+    @PostMapping("/{id}/like")
+    public ResponseEntity<Void> likeComment(@PathVariable Long id, @RequestBody Long userId) {
+        commentService.likeComment(id, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/unlike")
+    public ResponseEntity<Void> unlikeComment(@PathVariable Long id, @RequestBody Long userId) {
+        commentService.unlikeComment(id, userId);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteComment(@PathVariable Long id) {
         commentService.deleteComment(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{commentId}/replies")
-    public ResponseEntity<List<CommentDto>> getReplies(@PathVariable Long commentId) {
-        return ResponseEntity.ok(commentService.getReplies(commentId));
-    }
 }

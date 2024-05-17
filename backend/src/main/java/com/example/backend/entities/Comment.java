@@ -4,8 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Date;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @NoArgsConstructor
@@ -16,14 +15,13 @@ public class Comment {
     private Long commentId;
     private String content;
 
-    private int numLikes;
+    private int numLikes = 0;
+    private int numReplies = 0;
     @ManyToMany
-    private Set<User> likedUsers;
+    private Set<User> likedUsers = new HashSet<>();
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date created;
-
-    private int numReplies;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
@@ -36,14 +34,7 @@ public class Comment {
     @JoinColumn(name = "user_id")
     private User user;
 
-    // Comment that this comment is a reply to
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "parent_comment_id")
-    private Comment parentComment;
-
-    // User that this comment is a reply to
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "replied_to_user_id")
-    private User repliedTo;
-
+    // Replies to this comment
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL)
+    private List<Reply> replies = new ArrayList<>();
 }

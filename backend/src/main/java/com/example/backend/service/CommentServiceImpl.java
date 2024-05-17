@@ -47,30 +47,6 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public CommentDto addReply(Long parentCommentId, CommentDto replyDto) {
-        // find the parent comment which is the comment everyone is replying to. Think of youtube
-        Comment parentComment = commentRepository.findById(parentCommentId)
-                .orElseThrow(() -> new RuntimeException("Parent comment not found"));
-
-        Comment reply = new Comment();
-        reply.setContent(replyDto.getContent());
-        reply.setUser(userRepository.findById(replyDto.getUserId()).orElseThrow(() -> new RuntimeException("User not found")));
-        reply.setParentComment(parentComment);
-        reply.setCreated(new Date());
-        // set the user that this comment is a reply to
-        User repliedTo = userRepository.findByUsername(replyDto.getRepliedToUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        reply.setRepliedTo(repliedTo);
-
-        reply = commentRepository.save(reply);
-
-        //parentComment.setNumReplies(commentRepository.countByParentComment(parentComment));
-        parentComment.setNumReplies(parentComment.getNumReplies() + 1); // increment the number of replies
-        commentRepository.save(parentComment);
-        return mapToDto(reply);
-    }
-
-    @Override
     public CommentDto getCommentById(Long id) {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
@@ -92,35 +68,38 @@ public class CommentServiceImpl implements CommentService {
         Post post = comment.getPost();
 
         if (post != null) {
-            post.setNumComments(post.getNumComments() - 1 - comment.getNumReplies()); // decrement the number of comments and replies
+            post.getComments().remove(comment); // remove the comment from the post's comments list
+            post.setNumComments(post.getComments().size()); // update the number of comments
             postRepo.save(post);
-        }
-
-        // if the comment is a reply, decrement the number of replies of the parent comment
-        Comment parentComment = comment.getParentComment();
-        if (parentComment != null) {
-            parentComment.setNumReplies(parentComment.getNumReplies() - 1); // decrement the number of replies
-            commentRepository.save(parentComment);
         }
 
         commentRepository.delete(comment);
     }
 
     @Override
-    public List<CommentDto> getReplies(Long commentId) {
+    public void likeComment(Long commentId, Long userId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return commentRepository.findAllByParentComment(comment).stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
+        comment.getLikedUsers().add(user);
+        comment.setNumLikes(comment.getLikedUsers().size());
+
+        commentRepository.save(comment);
     }
 
     @Override
-    public int getCommentCount(Long postId) {
-        Post post = postRepo.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
-        return post.getComments().size();
+    public void unlikeComment(Long commentId, Long userId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        comment.getLikedUsers().remove(user);
+        comment.setNumLikes(comment.getLikedUsers().size());
+
+        commentRepository.save(comment);
     }
 
     private CommentDto mapToDto(Comment comment) {
@@ -128,17 +107,10 @@ public class CommentServiceImpl implements CommentService {
         dto.setCommentId(comment.getCommentId());
         dto.setContent(comment.getContent());
         dto.setNumLikes(comment.getNumLikes());
-        dto.setNumReplies(comment.getNumReplies());
-        dto.setProfilePic(comment.getUser().getProfilePicture());
-
         dto.setCreated(comment.getCreated().toString());
         dto.setUsername(comment.getUser().getUsername());
-        if (comment.getParentComment() != null) {
-            dto.setParentCommentId(comment.getParentComment().getCommentId());
-        }
-        if (comment.getRepliedTo() != null) {
-            dto.setRepliedToUsername(comment.getRepliedTo().getUsername());
-        }
+        dto.setProfilePic(comment.getUser().getProfilePicture());
+        dto.setNumReplies(comment.getNumReplies());
         return dto;
     }
 }
