@@ -119,6 +119,8 @@ public class PostServiceImpl implements PostService {
         postDto.setContent(post.getContent());
         postDto.setCreated(post.getCreated().toString());
         postDto.setNumLikes(post.getNumLikes());
+        postDto.setNumComments(post.getNumComments());
+        postDto.setProfilePic(post.getUser().getProfilePicture());
 
         // Set the username of the user who created the post
         postDto.setUsername(post.getUser().getUsername());

@@ -11,9 +11,10 @@ public class CommentDto {
     private int numLikes;
     private String created;
     private int numReplies;
+    private String profilePic; // profile picture of the user who posted the comment
     private Long postId; // ID of the post that the comment belongs to
     private Long userId; // ID of the user who posted the comment
     private String username; // username of the user who posted the comment
-    private String parentCommentId; // ID of the comment that this comment is a reply to
+    private Long parentCommentId; // ID of the comment that this comment is a reply to
     private String repliedToUsername; // username of the user that this comment is a reply to
 }

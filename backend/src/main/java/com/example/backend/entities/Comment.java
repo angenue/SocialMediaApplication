@@ -37,7 +37,7 @@ public class Comment {
     private User user;
 
     // Comment that this comment is a reply to
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "parent_comment_id")
     private Comment parentComment;
 

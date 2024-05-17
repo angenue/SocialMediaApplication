@@ -19,9 +19,9 @@ public class CommentController {
         this.commentService = commentService;
     }
 
-    @PostMapping
-    public ResponseEntity<CommentDto> addComment(@RequestBody CommentDto commentDto) {
-        return ResponseEntity.ok(commentService.addComment(commentDto));
+    @PostMapping("/post/{postId}")
+    public ResponseEntity<CommentDto> addComment(@PathVariable Long postId, @RequestBody CommentDto commentDto) {
+        return ResponseEntity.ok(commentService.addComment(postId, commentDto));
     }
 
     @PostMapping("/{parentCommentId}/replies")

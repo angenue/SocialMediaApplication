@@ -14,4 +14,5 @@ public class PostDto {
     private String content;
     private String created;
     private String username;
+    private String profilePic;
 }

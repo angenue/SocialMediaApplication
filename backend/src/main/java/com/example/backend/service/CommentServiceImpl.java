@@ -29,26 +29,26 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public CommentDto addComment(CommentDto commentDto) {
+    public CommentDto addComment(Long postId, CommentDto commentDto) {
         Comment comment = new Comment();
+        Post post = postRepo.findById(postId).orElseThrow(() -> new RuntimeException("Post not found"));
 
         comment.setContent(commentDto.getContent());
         comment.setUser(userRepository.findById(commentDto.getUserId()).orElseThrow(() -> new RuntimeException("User not found")));
         comment.setCreated(new Date());
-
-        Post post = postRepo.findById(commentDto.getPostId()).orElseThrow(() -> new RuntimeException("Post not found"));
         comment.setPost(post); // set the post that the comment is being made on
 
+        post.setNumComments(post.getComments().size()); // increment the number of comments
+        postRepo.save(post); // save the post to the database
 
         comment = commentRepository.save(comment); // save the comment to the database
-        post.setNumComments(post.getNumComments() + 1); // increment the number of comments
-        postRepo.save(post);
+
         return mapToDto(comment);
     }
 
     @Override
     public CommentDto addReply(Long parentCommentId, CommentDto replyDto) {
-        // find the parent comment
+        // find the parent comment which is the comment everyone is replying to. Think of youtube
         Comment parentComment = commentRepository.findById(parentCommentId)
                 .orElseThrow(() -> new RuntimeException("Parent comment not found"));
 
@@ -63,6 +63,8 @@ public class CommentServiceImpl implements CommentService {
         reply.setRepliedTo(repliedTo);
 
         reply = commentRepository.save(reply);
+
+        //parentComment.setNumReplies(commentRepository.countByParentComment(parentComment));
         parentComment.setNumReplies(parentComment.getNumReplies() + 1); // increment the number of replies
         commentRepository.save(parentComment);
         return mapToDto(reply);
@@ -114,16 +116,25 @@ public class CommentServiceImpl implements CommentService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public int getCommentCount(Long postId) {
+        Post post = postRepo.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        return post.getComments().size();
+    }
+
     private CommentDto mapToDto(Comment comment) {
         CommentDto dto = new CommentDto();
         dto.setCommentId(comment.getCommentId());
         dto.setContent(comment.getContent());
         dto.setNumLikes(comment.getNumLikes());
+        dto.setNumReplies(comment.getNumReplies());
+        dto.setProfilePic(comment.getUser().getProfilePicture());
 
         dto.setCreated(comment.getCreated().toString());
         dto.setUsername(comment.getUser().getUsername());
         if (comment.getParentComment() != null) {
-            dto.setParentCommentId(comment.getParentComment().getCommentId().toString());
+            dto.setParentCommentId(comment.getParentComment().getCommentId());
         }
         if (comment.getRepliedTo() != null) {
             dto.setRepliedToUsername(comment.getRepliedTo().getUsername());
