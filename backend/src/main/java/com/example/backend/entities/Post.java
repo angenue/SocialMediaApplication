@@ -38,6 +38,8 @@ public class Post {
     @JoinColumn(name = "commentId")
     private List<Comment> comments; //posts have a list of comments
 
+    private int numComments;
+
     @Override
     public int hashCode() {
         return Objects.hash(postId, content, created, numLikes);
