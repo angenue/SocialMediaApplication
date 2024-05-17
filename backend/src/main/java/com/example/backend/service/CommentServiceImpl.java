@@ -3,6 +3,7 @@ package com.example.backend.service;
 import com.example.backend.dto.CommentDto;
 import com.example.backend.entities.Comment;
 import com.example.backend.entities.Post;
+import com.example.backend.entities.User;
 import com.example.backend.repository.CommentRepo;
 import com.example.backend.repository.PostRepo;
 import com.example.backend.repository.UserRepo;
@@ -56,7 +57,10 @@ public class CommentServiceImpl implements CommentService {
         reply.setUser(userRepository.findById(replyDto.getUserId()).orElseThrow(() -> new RuntimeException("User not found")));
         reply.setParentComment(parentComment);
         reply.setCreated(new Date());
-
+        // set the user that this comment is a reply to
+        User repliedTo = userRepository.findByUsername(replyDto.getRepliedToUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        reply.setRepliedTo(repliedTo);
 
         reply = commentRepository.save(reply);
         parentComment.setNumReplies(parentComment.getNumReplies() + 1); // increment the number of replies

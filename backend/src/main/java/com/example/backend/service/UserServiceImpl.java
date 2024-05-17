@@ -103,7 +103,7 @@ public class UserServiceImpl implements UserService {
                     PostDto postDto = new PostDto();
                     postDto.setPostId(post.getPostId());
                     postDto.setContent(post.getContent());
-                    postDto.setCreated(post.getCreated());
+                    postDto.setCreated(post.getCreated().toString());
                     postDto.setUsername(post.getUser().getUsername());
                     return postDto;
                 })
@@ -122,7 +122,7 @@ public class UserServiceImpl implements UserService {
                     CommentDto commentDto = new CommentDto();
                     commentDto.setCommentId(comment.getCommentId());
                     commentDto.setContent(comment.getContent());
-                    commentDto.setCreated(comment.getCreated());
+                    commentDto.setCreated(comment.getCreated().toString());
                     commentDto.setUsername(comment.getUser().getUsername());
 
                     return commentDto;
