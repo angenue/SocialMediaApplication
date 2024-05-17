@@ -3,6 +3,7 @@ package com.example.backend.controller;
 import com.example.backend.dto.PostDto;
 import com.example.backend.dto.UserDto;
 import com.example.backend.service.PostService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,14 +43,16 @@ public class PostController {
         return postService.getPostsOfFollowedUsers(userId);
     }
 
-    @PostMapping("/{postId}/like")
-    public void likePost(@PathVariable Long postId, @RequestParam Long userId) {
-        postService.likePost(postId, userId);
+    @PostMapping("/{id}/like")
+    public ResponseEntity<Void> likePost(@PathVariable Long id, @RequestBody Long userId) {
+        postService.likePost(id, userId);
+        return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{postId}/unlike")
-    public void unlikePost(@PathVariable Long postId, @RequestParam Long userId) {
-        postService.unlikePost(postId, userId);
+    @PostMapping("/{id}/unlike")
+    public ResponseEntity<Void> unlikePost(@PathVariable Long id, @RequestBody Long userId) {
+        postService.unlikePost(id, userId);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{postId}/likes")
