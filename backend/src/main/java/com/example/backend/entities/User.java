@@ -48,24 +48,4 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Reply> replies = new ArrayList<>();
 
-
-    //hashcode and tostring updated to prevent infinite recursion caused by circular references between user and post
-    /*@Override
-    public int hashCode() {
-        return Objects.hash(userId, email, username, firstName, lastName, bio, profilePicture, password);
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "userId=" + userId +
-                ", email='" + email + '\'' +
-                ", username='" + username + '\'' +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", bio='" + bio + '\'' +
-                ", profilePicture='" + profilePicture + '\'' +
-                '}';
-    }*/
-
 }

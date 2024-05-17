@@ -31,10 +31,14 @@ public class ReplyServiceImpl implements ReplyService {
     @Override
     public ReplyDto addReply(Long parentCommentId, ReplyDto replyDto) {
         Reply reply = new Reply();
+
+        //the comment that you are replying to
         Comment parentComment = commentRepo.findById(parentCommentId)
                 .orElseThrow(() -> new RuntimeException("Parent comment not found"));
+        //your user id
         User user = userRepository.findById(replyDto.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        //user that you are replying to
         User repliedTo = userRepository.findByUsername(replyDto.getRepliedToUsername())
                 .orElseThrow(() -> new RuntimeException("Replied-to user not found"));
 
@@ -47,7 +51,9 @@ public class ReplyServiceImpl implements ReplyService {
         reply = replyRepository.save(reply);
 
         parentComment.setNumReplies(parentComment.getReplies().size()); // increment the number of replies
+
         commentRepo.save(parentComment);
+
         return mapToDto(reply);
     }
     @Override
@@ -80,7 +86,9 @@ public class ReplyServiceImpl implements ReplyService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        //add the user to the list of liked users
         reply.getLikedUsers().add(user);
+        //set the number of likes to the size of the liked users list
         reply.setNumLikes(reply.getLikedUsers().size());
 
         replyRepository.save(reply);
@@ -93,12 +101,15 @@ public class ReplyServiceImpl implements ReplyService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        //remove the user from the list of liked users
         reply.getLikedUsers().remove(user);
+        //set the number of likes to the size of the liked users list
         reply.setNumLikes(reply.getLikedUsers().size());
 
         replyRepository.save(reply);
     }
 
+    //helper method for code reuse
     private ReplyDto mapToDto(Reply reply) {
         ReplyDto dto = new ReplyDto();
         dto.setReplyId(reply.getReplyId());

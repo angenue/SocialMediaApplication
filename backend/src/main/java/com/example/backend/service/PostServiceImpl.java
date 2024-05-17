@@ -54,6 +54,7 @@ public class PostServiceImpl implements PostService {
         return mapToPostDto(post);
     }
 
+    //for when we create the main feed to return posts from users that the current user follows
     @Override
     public List<PostDto> getPostsOfFollowedUsers(Long userId) {
         User user = userRepo.findById(userId)
@@ -65,6 +66,7 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
     }
 
+    //for when user clicks on a user profile to see their posts
     @Override
     public List<PostDto> getPostsByUser(Long userId) {
         User user = userRepo.findById(userId)
@@ -129,7 +131,7 @@ public class PostServiceImpl implements PostService {
     }
 
 
-
+//helper method to get list of users who liked the post
     @Override
     public List<UserDto> getLikedUsers(Long postId) {
         Post post = postRepo.findById(postId)

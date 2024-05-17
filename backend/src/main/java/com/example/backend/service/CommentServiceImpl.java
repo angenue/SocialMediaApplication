@@ -31,17 +31,20 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentDto addComment(Long postId, CommentDto commentDto) {
         Comment comment = new Comment();
+
+        // get the post that the comment is being made on
         Post post = postRepo.findById(postId).orElseThrow(() -> new RuntimeException("Post not found"));
 
         comment.setContent(commentDto.getContent());
         comment.setUser(userRepository.findById(commentDto.getUserId()).orElseThrow(() -> new RuntimeException("User not found")));
         comment.setCreated(new Date());
-        comment.setPost(post); // set the post that the comment is being made on
+        comment.setPost(post);
 
         post.setNumComments(post.getComments().size()); // increment the number of comments
-        postRepo.save(post); // save the post to the database
 
-        comment = commentRepository.save(comment); // save the comment to the database
+        postRepo.save(post);
+
+        comment = commentRepository.save(comment);
 
         return mapToDto(comment);
     }
@@ -83,7 +86,9 @@ public class CommentServiceImpl implements CommentService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // add the user to the list of users who liked the comment
         comment.getLikedUsers().add(user);
+        // set the number of likes to the size of the liked users list
         comment.setNumLikes(comment.getLikedUsers().size());
 
         commentRepository.save(comment);
@@ -96,12 +101,15 @@ public class CommentServiceImpl implements CommentService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // remove the user from the list of users who liked the comment
         comment.getLikedUsers().remove(user);
+        // set the number of likes to the size of the liked users list
         comment.setNumLikes(comment.getLikedUsers().size());
 
         commentRepository.save(comment);
     }
 
+    // map a Comment entity to a CommentDto for sending to the client side
     private CommentDto mapToDto(Comment comment) {
         CommentDto dto = new CommentDto();
         dto.setCommentId(comment.getCommentId());

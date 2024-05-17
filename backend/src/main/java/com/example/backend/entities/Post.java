@@ -33,18 +33,4 @@ public class Post {
     @ManyToMany
     private Set<User> likedUsers = new HashSet<>();
 
-   /* @Override
-    public int hashCode() {
-        return Objects.hash(postId, content, created, numLikes);
-    }
-
-    @Override
-    public String toString() {
-        return "Post{" +
-                "postId=" + postId +
-                ", content='" + content + '\'' +
-                ", created=" + created +
-                ", numLikes=" + numLikes +
-                '}';
-    }*/
 }
