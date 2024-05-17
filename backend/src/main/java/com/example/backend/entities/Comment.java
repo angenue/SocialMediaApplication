@@ -31,6 +31,7 @@ public class Comment {
     private Post post;
 
     // User who posted the comment
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
