@@ -4,10 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @NoArgsConstructor
@@ -44,14 +41,16 @@ public class User {
 
     //keep tracks of users who liked the post
     @ManyToMany(mappedBy = "likedUsers")
-    private Set<Post> likedPosts;
+    private Set<Post> likedPosts = new HashSet<>();
 
     @OneToMany(mappedBy = "user")
-    private List<Comment> comments;
+    private List<Comment> comments = new ArrayList<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Reply> replies = new ArrayList<>();
 
 
     //hashcode and tostring updated to prevent infinite recursion caused by circular references between user and post
-    @Override
+    /*@Override
     public int hashCode() {
         return Objects.hash(userId, email, username, firstName, lastName, bio, profilePicture, password);
     }
@@ -67,6 +66,6 @@ public class User {
                 ", bio='" + bio + '\'' +
                 ", profilePicture='" + profilePicture + '\'' +
                 '}';
-    }
+    }*/
 
 }
