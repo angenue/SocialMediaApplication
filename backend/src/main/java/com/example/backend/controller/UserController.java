@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController // This means that this class is a Controller
-@RequestMapping("/user") // This means URL's start with /user (after Application path)
 
 public class UserController {
     private final UserService userService;
