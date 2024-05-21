@@ -6,6 +6,7 @@ import com.example.backend.dto.UserDto;
 import com.example.backend.entities.Follow;
 import com.example.backend.entities.User;
 import com.example.backend.repository.UserRepo;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -15,13 +16,14 @@ import java.util.stream.Collectors;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepo userRepo;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepo userRepo) {
+    public UserServiceImpl(UserRepo userRepo, PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public void createUser(UserDto userDto) {
-        //check if the email or username is already taken
         checkEmailTaken(userDto.getEmail());
         checkUsernameTaken(userDto.getUsername());
 
@@ -29,7 +31,7 @@ public class UserServiceImpl implements UserService {
         user.setUsername(userDto.getUsername());
         user.setName(userDto.getName());
         user.setEmail(userDto.getEmail());
-        user.setPassword(userDto.getPassword());
+        user.setPassword(passwordEncoder.encode(userDto.getNewPassword()));
         userRepo.save(user);
     }
 
@@ -89,7 +91,7 @@ public class UserServiceImpl implements UserService {
     public void updatePassword(Long userId, String currentPassword, String newPassword, String repeatedNewPassword) {
         User user = userRepo.findById(userId).orElseThrow();
 
-        if (!user.getPassword().equals(currentPassword)) {
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new RuntimeException("Current password is incorrect");
         }
 
@@ -97,7 +99,7 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("New passwords do not match");
         }
 
-        user.setPassword(newPassword);
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepo.save(user);
     }
 
