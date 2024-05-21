@@ -8,10 +8,11 @@ import java.util.List;
 
 public interface UserService {
 
-    public void createUser(UserDto userDto);
+    void createUser(UserDto userDto);
 
-
-    UserDto getUser(Long id);
+    void updatePassword(Long userId, String currentPassword, String newPassword, String repeatedNewPassword);
+    void updateProfile(UserDto userDto);
+    UserDto getUserById(Long id);
 
     UserDto getUserByUsername(String username); // new method
 

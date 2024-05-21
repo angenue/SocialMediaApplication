@@ -22,8 +22,7 @@ public class User {
 
     @Column(unique = true) //username needs to be unique
     private String username;
-    private String firstName;
-    private String lastName;
+    private String name;
     private String bio;
     private String profilePicture;
     private String password;

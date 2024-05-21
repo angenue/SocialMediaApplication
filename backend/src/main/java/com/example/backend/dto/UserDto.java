@@ -8,11 +8,13 @@ public class UserDto {
     private Long userId;
     private String email;
     private String username;
-    private String firstName;
-    private String lastName;
+    private String name;
     private String bio;
     private String profilePicture;
-    private String password;
+
+    //for password change
+    private String currentPassword;
+    private String newPassword;
 
 
 }

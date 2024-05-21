@@ -14,80 +14,108 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
+    private final UserRepo userRepo;
 
+    public UserServiceImpl(UserRepo userRepo) {
+        this.userRepo = userRepo;
+    }
 
-        private final UserRepo userRepo;
+    public void createUser(UserDto userDto) {
+        //check if the email or username is already taken
+        checkEmailTaken(userDto.getEmail());
+        checkUsernameTaken(userDto.getUsername());
 
-        public UserServiceImpl(UserRepo userRepo) {
-            this.userRepo = userRepo;
-        }
-    public void createUser(UserDto userDto) { // Implements the createUser method from UserService
-        User user = new User(); // Create a new User object
-        user.setUsername(userDto.getUsername()); // Set the username of the User object to the username of the userDto
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
+        User user = new User();
+        user.setUsername(userDto.getUsername());
+        user.setName(userDto.getName());
         user.setEmail(userDto.getEmail());
-        user.setPassword(userDto.getPassword());
-        userRepo.save(user); // Save the user to the database
-
+        user.setPassword(userDto.getCurrentPassword());
+        userRepo.save(user);
     }
 
     public UserDto getUserByUsername(String username) { // Implements the getUserByUsername method from UserService
         User user = userRepo.findByUsername(username).orElseThrow(); // Find the user by username
-        UserDto userDto = new UserDto(); // Create a new UserDto object
-        userDto.setUserId(user.getUserId()); // Set the userId of the UserDto object to the userId of the user
-        userDto.setUsername(user.getUsername());
-        userDto.setFirstName(user.getFirstName());
-        userDto.setLastName(user.getLastName());
-        userDto.setEmail(user.getEmail());
-        userDto.setBio(user.getBio());
-        userDto.setProfilePicture(user.getProfilePicture());
-        userDto.setPassword(user.getPassword());
-        return userDto; // Return the UserDto object
+        return mapToDto(user); // Return the UserDto object
+    }
+
+    public UserDto getUserById(Long id) {
+        User user = userRepo.findById(id).orElseThrow();
+        return mapToDto(user);
     }
 
     public void deleteUser(Long id) {
         userRepo.deleteById(id);
     }
 
-    public void updateUser(UserDto userDto) {
+    @Override
+    public void updateProfile(UserDto userDto) {
         User user = userRepo.findById(userDto.getUserId()).orElseThrow();
-        user.setUsername(userDto.getUsername());
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
-        user.setEmail(userDto.getEmail());
-        user.setPassword(userDto.getPassword());
-        user.setBio(userDto.getBio());
-        user.setProfilePicture(userDto.getProfilePicture());
-        userRepo.save(user); // Save the updated user to the database
 
+        // If the username in the UserDto object is not null and is different from the current username
+        if (userDto.getUsername() != null && !user.getUsername().equals(userDto.getUsername())) {
+            // Check if the new username is already taken
+            checkUsernameTaken(userDto.getUsername());
+            user.setUsername(userDto.getUsername());
+        }
+
+        // If the name in the UserDto object is not null, update the name
+        if (userDto.getName() != null) {
+            user.setName(userDto.getName());
+        }
+
+        // If the email in the UserDto object is not null and is different from the current email
+        if (userDto.getEmail() != null && !user.getEmail().equals(userDto.getEmail())) {
+            // Check if the new email is already taken
+            checkEmailTaken(userDto.getEmail());
+            // If not, update the email
+            user.setEmail(userDto.getEmail());
+        }
+
+        // If the bio in the UserDto object is not null, update the bio
+        if (userDto.getBio() != null) {
+            user.setBio(userDto.getBio());
+        }
+
+        // If the profile picture in the UserDto object is not null, update the profile picture
+        if (userDto.getProfilePicture() != null) {
+            user.setProfilePicture(userDto.getProfilePicture());
+        }
+
+        // Save the updated user back to the database
+        userRepo.save(user);
     }
-    public UserDto getUser(Long id) {
-        User user = userRepo.findById(id).orElseThrow();
-        UserDto userDto = new UserDto();
-        userDto.setUserId(user.getUserId());
-        userDto.setUsername(user.getUsername());
-        userDto.setFirstName(user.getFirstName());
-        userDto.setLastName(user.getLastName());
-        userDto.setEmail(user.getEmail());
-        userDto.setBio(user.getBio());
-        userDto.setProfilePicture(user.getProfilePicture());
-        return userDto;
+
+    @Override
+    public void updatePassword(Long userId, String currentPassword, String newPassword, String repeatedNewPassword) {
+        User user = userRepo.findById(userId).orElseThrow();
+
+        if (!user.getPassword().equals(currentPassword)) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+
+        if (!newPassword.equals(repeatedNewPassword)) {
+            throw new RuntimeException("New passwords do not match");
+        }
+
+        user.setPassword(newPassword);
+        userRepo.save(user);
     }
-        public void followUser(Long followerId, Long followedId) {// Return the UserDto objectpublic void followUser(Long followerId, Long followedId) {
-    User follower = userRepo.findById(followerId).orElseThrow(); // Retrieve the follower user
-    User followed = userRepo.findById(followedId).orElseThrow(); // Retrieve the followed user
 
-    Follow follow = new Follow(); // Create a new Follow entity
-    follow.setFollower(follower); // Set the follower user
-    follow.setFollowed(followed); // Set the followed user
-    follow.setCreated(new Date()); // Set the current date as the creation date
 
-    follower.getFollowing().add(follow); // Add the follow to the follower's following list
-    followed.getFollowers().add(follow); // Add the follow to the followed's followers list
+    public void followUser(Long followerId, Long followedId) {// Return the UserDto objectpublic void followUser(Long followerId, Long followedId) {
+        User follower = userRepo.findById(followerId).orElseThrow(); // Retrieve the follower user
+        User followed = userRepo.findById(followedId).orElseThrow(); // Retrieve the followed user
 
-    userRepo.save(follower); // Save the follower user
-    userRepo.save(followed); // Save the followed user
+        Follow follow = new Follow(); // Create a new Follow entity
+        follow.setFollower(follower); // Set the follower user
+        follow.setFollowed(followed); // Set the followed user
+        follow.setCreated(new Date()); // Set the current date as the creation date
+
+        follower.getFollowing().add(follow); // Add the follow to the follower's following list
+        followed.getFollowers().add(follow); // Add the follow to the followed's followers list
+
+        userRepo.save(follower); // Save the follower user
+        userRepo.save(followed); // Save the followed user
     }
 
 
@@ -128,6 +156,31 @@ public class UserServiceImpl implements UserService {
                     return commentDto;
                 })
                 .collect(Collectors.toList());
+    }
+
+    private void checkEmailTaken(String email) {
+        User existingUserByEmail = userRepo.findByEmail(email);
+        if (existingUserByEmail != null) {
+            throw new RuntimeException("Email is already taken");
+        }
+    }
+
+    private void checkUsernameTaken(String username) {
+        User existingUserByUsername = userRepo.findByUsername(username).orElse(null);
+        if (existingUserByUsername != null) {
+            throw new RuntimeException("Username is already taken");
+        }
+    }
+
+    private UserDto mapToDto(User user) {
+        UserDto userDto = new UserDto();
+        userDto.setUserId(user.getUserId());
+        userDto.setUsername(user.getUsername());
+        userDto.setName(user.getName());
+        userDto.setEmail(user.getEmail());
+        userDto.setBio(user.getBio());
+        userDto.setProfilePicture(user.getProfilePicture());
+        return userDto;
     }
 }
 
