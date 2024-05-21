@@ -2,6 +2,7 @@
 package com.example.backend.service;
 
 import com.example.backend.dto.PostDto;
+import com.example.backend.dto.UserDto;
 
 import java.util.List;
 
@@ -16,6 +17,9 @@ public interface PostService {
     void likePost(Long postId, Long userId);
     void unlikePost(Long postId, Long userId);
     int getLikes(Long postId);
+
+
+    List<UserDto> getLikedUsers(Long postId);
 
 }
 

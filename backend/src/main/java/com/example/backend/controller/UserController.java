@@ -1,5 +1,7 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.CommentDto;
+import com.example.backend.dto.PostDto;
 import com.example.backend.dto.UserDto;
 import com.example.backend.service.UserService;
 import org.springframework.web.bind.annotation.*;
@@ -31,9 +33,22 @@ public class UserController {
         userService.followUser(followerId, followedId);
     }
 
+
+
     @GetMapping("/{userId}/followers")
     public List<UserDto> getFollowers(@PathVariable Long userId) {
         return userService.getFollowers(userId);
     }
-}
+
+        @GetMapping("/{userId}/likedPosts")
+        public List<PostDto> getLikedPostsByUser (@PathVariable Long userId){
+            return userService.getLikedPostsByUser(userId);
+        }
+
+        @GetMapping("/{userId}/comments")
+        public List<CommentDto> getCommentsByUser (@PathVariable Long userId){
+            return userService.getCommentsByUser(userId);
+        }
+    }
+
 

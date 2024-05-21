@@ -4,31 +4,33 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Entity
-@Data
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long postId;
-
-    @ManyToOne //many posts can belong to one user
-    @JoinColumn(name = "userId")
-    @JsonIgnore //avoids infinite recursion in bidirectional relationship
-    private User user;
-
-    private int numLikes;
-    private boolean likedByCurrentUser; //allows user to like and unlike
     private String content;
+    private int numLikes =0;
+    private int numComments =0;
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date created;
 
-    //lazy fetch means the comments will only be fetched when explicitly accessed
-    //cascade type all means all operations performed in post will also be performed in comments
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "commentId")
-    private List<Comment> comments; //posts have a list of comments
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user; // User who posted the post
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    private List<Comment> comments = new ArrayList<>();; // Comments on the post
+
+    @ManyToMany
+    private Set<User> likedUsers = new HashSet<>();
+
 }

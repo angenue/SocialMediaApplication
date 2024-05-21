@@ -7,6 +7,8 @@ import com.example.backend.entities.Post;
 import com.example.backend.entities.User;
 import com.example.backend.repository.PostRepo;
 import com.example.backend.repository.UserRepo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -18,6 +20,8 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepo postRepo;
     private final UserRepo userRepo;
+    private static final Logger LOGGER = LoggerFactory.getLogger(PostServiceImpl.class);
+
 
     public PostServiceImpl(PostRepo postRepo, UserRepo userRepo) {
         this.postRepo = postRepo;
@@ -50,6 +54,7 @@ public class PostServiceImpl implements PostService {
         return mapToPostDto(post);
     }
 
+    //for when we create the main feed to return posts from users that the current user follows
     @Override
     public List<PostDto> getPostsOfFollowedUsers(Long userId) {
         User user = userRepo.findById(userId)
@@ -61,6 +66,7 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
     }
 
+    //for when user clicks on a user profile to see their posts
     @Override
     public List<PostDto> getPostsByUser(Long userId) {
         User user = userRepo.findById(userId)
@@ -69,7 +75,6 @@ public class PostServiceImpl implements PostService {
                 .map(this::mapToPostDto)
                 .collect(Collectors.toList());
     }
-
     @Override
     public void likePost(Long postId, Long userId) {
         Post post = postRepo.findById(postId)
@@ -77,12 +82,12 @@ public class PostServiceImpl implements PostService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-
         // if post is not liked by the current user
-        if (!post.isLikedByCurrentUser()) {
-            post.setNumLikes(post.getNumLikes() + 1); //increase like count
-            post.setLikedByCurrentUser(true);
+        if (!post.getLikedUsers().contains(user)) {
+            post.getLikedUsers().add(user); //add user to list of liked users
+            post.setNumLikes(post.getLikedUsers().size());
             postRepo.save(post);
+            LOGGER.info("User {} liked post {}. Liked users: {}", userId, postId, post.getLikedUsers());
         }
     }
 
@@ -93,10 +98,10 @@ public class PostServiceImpl implements PostService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        //if post is not liked by the current user
-        if (post.isLikedByCurrentUser()) {
-            post.setNumLikes(post.getNumLikes() - 1); //remove a like
-            post.setLikedByCurrentUser(false);
+        // Check if the user has liked the post
+        if (post.getLikedUsers().contains(user)) {
+            post.getLikedUsers().remove(user); // Remove the user from the set of users who have liked the post
+            post.setNumLikes(post.getLikedUsers().size()); // Update like count
             postRepo.save(post);
         }
     }
@@ -105,7 +110,7 @@ public class PostServiceImpl implements PostService {
     public int getLikes(Long postId) {
         Post post = postRepo.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
-        return post.getNumLikes();
+        return post.getLikedUsers().size();
     }
 
 
@@ -114,14 +119,31 @@ public class PostServiceImpl implements PostService {
         PostDto postDto = new PostDto();
         postDto.setPostId(post.getPostId());
         postDto.setContent(post.getContent());
-        postDto.setCreated(post.getCreated());
+        postDto.setCreated(post.getCreated().toString());
         postDto.setNumLikes(post.getNumLikes());
-        postDto.setLikedByCurrentUser(post.isLikedByCurrentUser());
+        postDto.setNumComments(post.getNumComments());
+        postDto.setProfilePic(post.getUser().getProfilePicture());
 
-        UserDto userDto = new UserDto();
-        userDto.setUsername(post.getUser().getUsername());
+        // Set the username of the user who created the post
+        postDto.setUsername(post.getUser().getUsername());
 
-        postDto.setUser(userDto);
         return postDto;
+    }
+
+
+//helper method to get list of users who liked the post
+    @Override
+    public List<UserDto> getLikedUsers(Long postId) {
+        Post post = postRepo.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        //LOGGER.info("Liked users for post {}: {}", postId, post.getLikedUsers());
+        return post.getLikedUsers().stream()
+                .map(user -> {
+                    UserDto userDto = new UserDto();
+                    userDto.setUsername(user.getUsername());
+                    userDto.setUserId(user.getUserId());
+                    return userDto;
+                })
+                .collect(Collectors.toList());
     }
 }

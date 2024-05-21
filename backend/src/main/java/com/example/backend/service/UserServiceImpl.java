@@ -1,5 +1,7 @@
 package com.example.backend.service;
 
+import com.example.backend.dto.CommentDto;
+import com.example.backend.dto.PostDto;
 import com.example.backend.dto.UserDto;
 import com.example.backend.entities.Follow;
 import com.example.backend.entities.User;
@@ -88,6 +90,7 @@ public class UserServiceImpl implements UserService {
     userRepo.save(followed); // Save the followed user
     }
 
+
     @Override
     public List<UserDto> getFollowers(Long userId) {
         User user = userRepo.findById(userId)
@@ -107,6 +110,46 @@ public class UserServiceImpl implements UserService {
                 })
                 .collect(Collectors.toList());
     }
+    //retrieve a list of posts liked by a user
+    @Override
+    public List<PostDto> getLikedPostsByUser(Long userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
+        //only returning the fields we want to display such as username, content, and date
+        return user.getLikedPosts().stream()
+                .map(post -> {
+                    PostDto postDto = new PostDto();
+                    postDto.setPostId(post.getPostId());
+                    postDto.setContent(post.getContent());
+                    postDto.setCreated(post.getCreated().toString());
+                    postDto.setUsername(post.getUser().getUsername());
+                    return postDto;
+
+                })
+                .collect(Collectors.toList());
+    }
+
+
+    //return a list of comments made by a user
+    @Override
+    public List<CommentDto> getCommentsByUser(Long userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        //only returning the fields we want to display such as username, content, and date
+        return user.getComments().stream()
+                .map(comment -> {
+                    CommentDto commentDto = new CommentDto();
+                    commentDto.setCommentId(comment.getCommentId());
+                    commentDto.setContent(comment.getContent());
+                    commentDto.setCreated(comment.getCreated().toString());
+                    commentDto.setUsername(comment.getUser().getUsername());
+
+                    return commentDto;
+                })
+                .collect(Collectors.toList());
+    }
 }
+
 

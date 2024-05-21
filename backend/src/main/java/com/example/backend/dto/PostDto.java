@@ -10,7 +10,9 @@ public class PostDto {
     private Long postId;
     private UserDto user; // Include user information in the post DTO
     private int numLikes;
-    private boolean likedByCurrentUser;
+    private int numComments;
     private String content;
-    private Date created;
+    private String created;
+    private String username;
+    private String profilePic;
 }
