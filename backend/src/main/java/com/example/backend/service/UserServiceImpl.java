@@ -6,6 +6,10 @@ import com.example.backend.dto.UserDto;
 import com.example.backend.entities.Follow;
 import com.example.backend.entities.User;
 import com.example.backend.repository.UserRepo;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, UserDetailsService {
     private final UserRepo userRepo;
     private final PasswordEncoder passwordEncoder;
 
@@ -27,12 +31,23 @@ public class UserServiceImpl implements UserService {
         checkEmailTaken(userDto.getEmail());
         checkUsernameTaken(userDto.getUsername());
 
+        if (!userDto.getNewPassword().equals(userDto.getNewPasswordConfirmation())) {
+            throw new RuntimeException("Passwords do not match");
+        }
+
         User user = new User();
         user.setUsername(userDto.getUsername());
         user.setName(userDto.getName());
         user.setEmail(userDto.getEmail());
         user.setPassword(passwordEncoder.encode(userDto.getNewPassword()));
         userRepo.save(user);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return new CustomUserDetails(user);
     }
 
     public UserDto getUserByUsername(String username) { // Implements the getUserByUsername method from UserService
@@ -46,12 +61,24 @@ public class UserServiceImpl implements UserService {
     }
 
     public void deleteUser(Long id) {
+        String currentUsername = getCurrentUsername();
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (!user.getUsername().equals(currentUsername)) {
+            throw new SecurityException("You are not authorized to delete this user");
+        }
+
         userRepo.deleteById(id);
     }
 
-    @Override
     public void updateProfile(UserDto userDto) {
+        String currentUsername = getCurrentUsername();
         User user = userRepo.findById(userDto.getUserId()).orElseThrow();
+
+        if (!user.getUsername().equals(currentUsername)) {
+            throw new SecurityException("You are not authorized to update this profile");
+        }
 
         // If the username in the UserDto object is not null and is different from the current username
         if (userDto.getUsername() != null && !user.getUsername().equals(userDto.getUsername())) {
@@ -87,9 +114,13 @@ public class UserServiceImpl implements UserService {
         userRepo.save(user);
     }
 
-    @Override
     public void updatePassword(Long userId, String currentPassword, String newPassword, String repeatedNewPassword) {
+        String currentUsername = getCurrentUsername();
         User user = userRepo.findById(userId).orElseThrow();
+
+        if (!user.getUsername().equals(currentUsername)) {
+            throw new SecurityException("You are not authorized to update this password");
+        }
 
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new RuntimeException("Current password is incorrect");
@@ -183,6 +214,22 @@ public class UserServiceImpl implements UserService {
         userDto.setBio(user.getBio());
         userDto.setProfilePicture(user.getProfilePicture());
         return userDto;
+    }
+
+
+    //for security
+
+    private String getCurrentUsername() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UserDetails) {
+            return ((UserDetails) principal).getUsername();
+        } else {
+            return principal.toString();
+        }
+    }
+
+    public boolean isOwner(String username) {
+        return getCurrentUsername().equals(username);
     }
 }
 
