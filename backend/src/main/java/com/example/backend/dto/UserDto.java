@@ -23,21 +23,15 @@ public class UserDto {
     private String bio;
     private String profilePicture;
 
-    @JsonIgnore
-    @NotBlank(message = "Password is required")
-    private String password;
 
     //for password change
-    @JsonIgnore
     @NotBlank(message = "Current password is required")
-    private String currentPassword;
+    private String password;
 
-    @JsonIgnore
     @NotBlank(message = "New password is required")
     @Size(min = 8, message = "New password should have at least 8 characters")
     private String newPassword;
 
-    @JsonIgnore
     @NotBlank(message = "New password is required")
     @Size(min = 8, message = "New password should have at least 8 characters")
     private String newPasswordConfirmation;
