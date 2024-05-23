@@ -7,12 +7,13 @@ import com.example.backend.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController // This means that this class is a Controller
-
+@RequestMapping("/api/user")
 public class UserController {
     private final UserService userService;
 
@@ -20,17 +21,11 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<Void> createUser(@Valid @RequestBody UserDto userDto) {
-        userService.createUser(userDto);
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-
-   /* @GetMapping("/{userId}")
+   @GetMapping("/{userId}")
     public ResponseEntity<UserDto> getUserById(@PathVariable Long userId) {
         UserDto userDto = userService.getUserById(userId);
         return new ResponseEntity<>(userDto, HttpStatus.OK);
-    }*/
+    }
 
     @GetMapping("/{username}")
     public ResponseEntity<UserDto> getUserByUsername(@PathVariable String username) {
@@ -38,18 +33,21 @@ public class UserController {
         return new ResponseEntity<>(userDto, HttpStatus.OK);
     }
 
+    @PreAuthorize("@userServiceImpl.isOwner(#userDto.userId)") //ensures that user id equals the id of the logged in user
     @PutMapping("/settings/{userId}")
     public ResponseEntity<Void> updateProfile(@Valid @RequestBody UserDto userDto) {
         userService.updateProfile(userDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @PreAuthorize("@userServiceImpl.isOwner(#userId)")
     @PutMapping("/{userId}/password")
     public ResponseEntity<Void> updatePassword(@PathVariable Long userId, @Valid @RequestBody UserDto userDto) {
-        userService.updatePassword(userId, userDto.getCurrentPassword(), userDto.getNewPassword(), userDto.getNewPasswordConfirmation());
+        userService.updatePassword(userId, userDto.getPassword(), userDto.getNewPassword(), userDto.getNewPasswordConfirmation());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @PreAuthorize("@userServiceImpl.isOwner(#userId)")
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
