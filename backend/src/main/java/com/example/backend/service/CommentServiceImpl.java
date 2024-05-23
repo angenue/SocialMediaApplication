@@ -7,9 +7,8 @@ import com.example.backend.entities.User;
 import com.example.backend.repository.CommentRepo;
 import com.example.backend.repository.PostRepo;
 import com.example.backend.repository.UserRepo;
+import com.example.backend.util.UserContextService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -22,12 +21,14 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepo commentRepository;
     private final UserRepo userRepository;
     private final PostRepo postRepo;
+    private final UserContextService userContextService;
 
     @Autowired
-    public CommentServiceImpl(CommentRepo commentRepository, UserRepo userRepository, PostRepo postRepo) {
+    public CommentServiceImpl(CommentRepo commentRepository, UserRepo userRepository, PostRepo postRepo, UserContextService userContextService) {
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
         this.postRepo = postRepo;
+        this.userContextService = userContextService;
     }
 
     @Override
@@ -67,12 +68,16 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public void deleteComment(Long id) {
-        String currentUsername = getCurrentUsername();
+        User currentUser = userContextService.getCurrentUser();
+
+
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
 
-        if (!comment.getUser().getUsername().equals(currentUsername)) {
-            throw new SecurityException("You are not authorized to delete this post");
+
+
+        if (!currentUser.getUserId().equals(id)) {
+            throw new SecurityException("You are not authorized to delete this user");
         }
 
         Post post = comment.getPost();
@@ -129,12 +134,4 @@ public class CommentServiceImpl implements CommentService {
         return dto;
     }
 
-    private String getCurrentUsername() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof UserDetails) {
-            return ((UserDetails) principal).getUsername();
-        } else {
-            return principal.toString();
-        }
-    }
 }

@@ -7,9 +7,8 @@ import com.example.backend.entities.User;
 import com.example.backend.repository.CommentRepo;
 import com.example.backend.repository.ReplyRepo;
 import com.example.backend.repository.UserRepo;
+import com.example.backend.util.UserContextService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -23,11 +22,14 @@ public class ReplyServiceImpl implements ReplyService {
     private final UserRepo userRepository;
     private final CommentRepo commentRepo;
 
+    private final UserContextService userContextService;
+
     @Autowired
-    public ReplyServiceImpl(ReplyRepo replyRepository, UserRepo userRepository, CommentRepo commentRepo) {
+    public ReplyServiceImpl(ReplyRepo replyRepository, UserRepo userRepository, CommentRepo commentRepo, UserContextService userContextService) {
         this.replyRepository = replyRepository;
         this.userRepository = userRepository;
         this.commentRepo = commentRepo;
+        this.userContextService = userContextService;
     }
 
     @Override
@@ -67,12 +69,13 @@ public class ReplyServiceImpl implements ReplyService {
 
     @Override
     public void deleteReply(Long id) {
-        String currentUsername = getCurrentUsername();
+        User currentUser = userContextService.getCurrentUser();
         Reply reply = replyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Reply not found"));
 
-        if (!reply.getUser().getUsername().equals(currentUsername)) {
-            throw new SecurityException("You are not authorized to delete this post");
+
+        if (!currentUser.getUserId().equals(id)) {
+            throw new SecurityException("You are not authorized to delete this user");
         }
 
         Comment parentComment = reply.getParentComment();
@@ -130,12 +133,4 @@ public class ReplyServiceImpl implements ReplyService {
         return dto;
     }
 
-    private String getCurrentUsername() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof UserDetails) {
-            return ((UserDetails) principal).getUsername();
-        } else {
-            return principal.toString();
-        }
-    }
 }

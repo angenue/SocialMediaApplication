@@ -7,10 +7,9 @@ import com.example.backend.entities.Post;
 import com.example.backend.entities.User;
 import com.example.backend.repository.PostRepo;
 import com.example.backend.repository.UserRepo;
+import com.example.backend.util.UserContextService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -22,12 +21,14 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepo postRepo;
     private final UserRepo userRepo;
+    private final UserContextService userContextService;
     private static final Logger LOGGER = LoggerFactory.getLogger(PostServiceImpl.class);
 
 
-    public PostServiceImpl(PostRepo postRepo, UserRepo userRepo) {
+    public PostServiceImpl(PostRepo postRepo, UserRepo userRepo, UserContextService userContextService) {
         this.postRepo = postRepo;
         this.userRepo = userRepo;
+        this.userContextService = userContextService;
     }
 
     @Override
@@ -45,12 +46,13 @@ public class PostServiceImpl implements PostService {
     }
 
     public void deletePost(Long postId) {
-        String currentUsername = getCurrentUsername();
+        User currentUser = userContextService.getCurrentUser();
+
         Post post = postRepo.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found"));
 
-        if (!post.getUser().getUsername().equals(currentUsername)) {
-            throw new SecurityException("You are not authorized to delete this post");
+        if (!currentUser.getUserId().equals(post.getUser().getUserId())) {
+            throw new SecurityException("You are not authorized to delete this user");
         }
 
         postRepo.delete(post);
@@ -156,12 +158,4 @@ public class PostServiceImpl implements PostService {
                 .collect(Collectors.toList());
     }
 
-    private String getCurrentUsername() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof UserDetails) {
-            return ((UserDetails) principal).getUsername();
-        } else {
-            return principal.toString();
-        }
-    }
 }
