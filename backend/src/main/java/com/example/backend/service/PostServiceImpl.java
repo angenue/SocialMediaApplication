@@ -9,6 +9,8 @@ import com.example.backend.repository.PostRepo;
 import com.example.backend.repository.UserRepo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -42,9 +44,16 @@ public class PostServiceImpl implements PostService {
         postRepo.save(post);
     }
 
-    @Override
-    public void deletePost(Long id) {
-        postRepo.deleteById(id);
+    public void deletePost(Long postId) {
+        String currentUsername = getCurrentUsername();
+        Post post = postRepo.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found"));
+
+        if (!post.getUser().getUsername().equals(currentUsername)) {
+            throw new SecurityException("You are not authorized to delete this post");
+        }
+
+        postRepo.delete(post);
     }
 
     @Override
@@ -145,5 +154,14 @@ public class PostServiceImpl implements PostService {
                     return userDto;
                 })
                 .collect(Collectors.toList());
+    }
+
+    private String getCurrentUsername() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UserDetails) {
+            return ((UserDetails) principal).getUsername();
+        } else {
+            return principal.toString();
+        }
     }
 }

@@ -8,6 +8,8 @@ import com.example.backend.repository.CommentRepo;
 import com.example.backend.repository.PostRepo;
 import com.example.backend.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -65,8 +67,13 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public void deleteComment(Long id) {
+        String currentUsername = getCurrentUsername();
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
+
+        if (!comment.getUser().getUsername().equals(currentUsername)) {
+            throw new SecurityException("You are not authorized to delete this post");
+        }
 
         Post post = comment.getPost();
 
@@ -120,5 +127,14 @@ public class CommentServiceImpl implements CommentService {
         dto.setProfilePic(comment.getUser().getProfilePicture());
         dto.setNumReplies(comment.getNumReplies());
         return dto;
+    }
+
+    private String getCurrentUsername() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UserDetails) {
+            return ((UserDetails) principal).getUsername();
+        } else {
+            return principal.toString();
+        }
     }
 }

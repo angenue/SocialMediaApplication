@@ -8,6 +8,8 @@ import com.example.backend.repository.CommentRepo;
 import com.example.backend.repository.ReplyRepo;
 import com.example.backend.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -65,8 +67,13 @@ public class ReplyServiceImpl implements ReplyService {
 
     @Override
     public void deleteReply(Long id) {
+        String currentUsername = getCurrentUsername();
         Reply reply = replyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Reply not found"));
+
+        if (!reply.getUser().getUsername().equals(currentUsername)) {
+            throw new SecurityException("You are not authorized to delete this post");
+        }
 
         Comment parentComment = reply.getParentComment();
 
@@ -121,5 +128,14 @@ public class ReplyServiceImpl implements ReplyService {
         dto.setParentCommentId(reply.getParentComment().getCommentId());
         dto.setRepliedToUsername(reply.getRepliedTo().getUsername());
         return dto;
+    }
+
+    private String getCurrentUsername() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UserDetails) {
+            return ((UserDetails) principal).getUsername();
+        } else {
+            return principal.toString();
+        }
     }
 }
