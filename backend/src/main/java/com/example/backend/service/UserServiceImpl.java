@@ -6,13 +6,15 @@ import com.example.backend.dto.UserDto;
 import com.example.backend.entities.Follow;
 import com.example.backend.entities.User;
 import com.example.backend.repository.UserRepo;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.example.backend.util.UserContextService;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,10 +23,12 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService, UserDetailsService {
     private final UserRepo userRepo;
     private final PasswordEncoder passwordEncoder;
+    private final UserContextService userContextService;
 
-    public UserServiceImpl(UserRepo userRepo, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepo userRepo, PasswordEncoder passwordEncoder, UserContextService userContextService) {
         this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
+        this.userContextService = userContextService;
     }
 
     public void createUser(UserDto userDto) {
@@ -47,8 +51,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        return new CustomUserDetails(user);
+        return new org.springframework.security.core.userdetails.User(
+                user.getUsername(),
+                user.getPassword(),
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+        );
     }
+
 
     public UserDto getUserByUsername(String username) { // Implements the getUserByUsername method from UserService
         User user = userRepo.findByUsername(username).orElseThrow(); // Find the user by username
@@ -61,11 +70,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     public void deleteUser(Long id) {
-        String currentUsername = getCurrentUsername();
-        User user = userRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User currentUser = userContextService.getCurrentUser();
 
-        if (!user.getUsername().equals(currentUsername)) {
+        if (!currentUser.getUserId().equals(id)) {
             throw new SecurityException("You are not authorized to delete this user");
         }
 
@@ -73,11 +80,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     public void updateProfile(UserDto userDto) {
-        String currentUsername = getCurrentUsername();
-        User user = userRepo.findById(userDto.getUserId()).orElseThrow();
+        User user = userContextService.getCurrentUser();
 
-        if (!user.getUsername().equals(currentUsername)) {
-            throw new SecurityException("You are not authorized to update this profile");
+        if (!user.getUserId().equals(userDto.getUserId())) {
+            throw new SecurityException("You are not authorized to update this user");
         }
 
         // If the username in the UserDto object is not null and is different from the current username
@@ -115,11 +121,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     public void updatePassword(Long userId, String currentPassword, String newPassword, String repeatedNewPassword) {
-        String currentUsername = getCurrentUsername();
-        User user = userRepo.findById(userId).orElseThrow();
+        User user = userContextService.getCurrentUser();
 
-        if (!user.getUsername().equals(currentUsername)) {
-            throw new SecurityException("You are not authorized to update this password");
+        if (!user.getUserId().equals(userId)) {
+            throw new SecurityException("You are not authorized to update this user");
         }
 
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
@@ -216,20 +221,5 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return userDto;
     }
 
-
-    //for security
-
-    private String getCurrentUsername() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof UserDetails) {
-            return ((UserDetails) principal).getUsername();
-        } else {
-            return principal.toString();
-        }
-    }
-
-    public boolean isOwner(String username) {
-        return getCurrentUsername().equals(username);
-    }
 }
 

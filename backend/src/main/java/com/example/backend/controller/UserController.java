@@ -21,33 +21,34 @@ public class UserController {
         this.userService = userService;
     }
 
-   @GetMapping("/{userId}")
+    @GetMapping("/id/{userId}")
     public ResponseEntity<UserDto> getUserById(@PathVariable Long userId) {
         UserDto userDto = userService.getUserById(userId);
         return new ResponseEntity<>(userDto, HttpStatus.OK);
     }
 
-    @GetMapping("/{username}")
+    @GetMapping("/username/{username}")
     public ResponseEntity<UserDto> getUserByUsername(@PathVariable String username) {
         UserDto userDto = userService.getUserByUsername(username);
         return new ResponseEntity<>(userDto, HttpStatus.OK);
     }
 
-    @PreAuthorize("@userServiceImpl.isOwner(#userDto.userId)") //ensures that user id equals the id of the logged in user
+    @PreAuthorize("isAuthenticated() and @userContextService.isOwner(#userDto.userId)")//ensures that user id equals the id of the logged in user
     @PutMapping("/settings/{userId}")
     public ResponseEntity<Void> updateProfile(@Valid @RequestBody UserDto userDto) {
         userService.updateProfile(userDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PreAuthorize("@userServiceImpl.isOwner(#userId)")
+    @PreAuthorize("isAuthenticated() and @userContextService.isOwner(#userId)")
     @PutMapping("/{userId}/password")
     public ResponseEntity<Void> updatePassword(@PathVariable Long userId, @Valid @RequestBody UserDto userDto) {
         userService.updatePassword(userId, userDto.getPassword(), userDto.getNewPassword(), userDto.getNewPasswordConfirmation());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PreAuthorize("@userServiceImpl.isOwner(#userId)")
+    @PreAuthorize("isAuthenticated() and @userContextService.isOwner(#userId)")
+
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
