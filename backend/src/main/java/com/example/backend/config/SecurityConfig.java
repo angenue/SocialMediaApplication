@@ -1,24 +1,32 @@
 package com.example.backend.config;
 
-import com.example.backend.service.UserServiceImpl;
-import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig{
 
-    private final UserServiceImpl userService;
+    private final UserDetailsService userDetailsService;
 
-    public SecurityConfig(UserServiceImpl userService) {
-        this.userService = userService;
+    private final PasswordEncoder passwordEncoder;
+
+    @Autowired
+    public SecurityConfig(PasswordEncoder passwordEncoder, UserDetailsService userDetailsService) {
+        this.passwordEncoder = passwordEncoder;
+        this.userDetailsService = userDetailsService;
     }
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -30,34 +38,30 @@ public class SecurityConfig{
                                 .anyRequest().permitAll()
 
                 )
-                .formLogin(formLogin ->
+                .httpBasic(withDefaults())
+                .formLogin(withDefaults())
+               /* .formLogin(formLogin ->
                         formLogin
                                 .loginPage("/login")
                                 .permitAll()
-                )
+                )*/
                 .logout(logout ->
                         logout
                                 .logoutUrl("/logout")
                                 .permitAll()
                 )
-                .exceptionHandling(exceptionHandling ->
-                        exceptionHandling
-                                .authenticationEntryPoint((request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
-                                .accessDeniedHandler((request, response, accessDeniedException) -> response.sendError(HttpServletResponse.SC_FORBIDDEN))
-                )
-                .sessionManagement(sessionManagement ->
-                        sessionManagement
-                                .maximumSessions(1)
-                                .expiredUrl("/login?expired=true")
-                )
+
                 .csrf(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        return userService;
+    public DaoAuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder);
+        return authProvider;
     }
 
 }
