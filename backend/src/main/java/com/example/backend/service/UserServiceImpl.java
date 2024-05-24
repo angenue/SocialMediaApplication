@@ -90,11 +90,18 @@ public class UserServiceImpl implements UserService {
     userRepo.save(followed); // Save the followed user
     }
 
+    @Override
+    public int getNumberOfFollowers(String username) {
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return user.getFollowers().size();
+    }
+
 
     @Override
-    public List<UserDto> getFollowers(Long userId) {
-        User user = userRepo.findById(userId)
-                .orElseThrow();
+    public List<UserDto> getFollowers(String username) {
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         return user.getFollowers().stream()
                 .map(follower -> {

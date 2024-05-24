@@ -20,7 +20,9 @@ public interface UserService {
     void followUser(Long followerId, Long followedId); // new method
 
 
-    List<UserDto> getFollowers(Long userId);
+    List<UserDto> getFollowers(String username);
+
+    int getNumberOfFollowers(String username);
 
     List<PostDto> getLikedPostsByUser(Long userId); //retrieve all posts liked by a user
     List<CommentDto> getCommentsByUser(Long userId); //retrieve all comments made by a user

@@ -34,21 +34,26 @@ public class UserController {
     }
 
 
-
-    @GetMapping("/{userId}/followers")
-    public List<UserDto> getFollowers(@PathVariable Long userId) {
-        return userService.getFollowers(userId);
+    @GetMapping("/{username}/followers")
+    public List<UserDto> getFollowers(@PathVariable String username) {
+        return userService.getFollowers(String.valueOf(Long.valueOf(username)));
     }
 
-        @GetMapping("/{userId}/likedPosts")
-        public List<PostDto> getLikedPostsByUser (@PathVariable Long userId){
-            return userService.getLikedPostsByUser(userId);
-        }
-
-        @GetMapping("/{userId}/comments")
-        public List<CommentDto> getCommentsByUser (@PathVariable Long userId){
-            return userService.getCommentsByUser(userId);
-        }
+    @GetMapping("/{username}/followers/count")
+    public int getNumberOfFollowers(@PathVariable String username) {
+        return userService.getNumberOfFollowers(username);
     }
+
+    @GetMapping("/{userId}/likedPosts")
+    public List<PostDto> getLikedPostsByUser(@PathVariable Long userId) {
+        return userService.getLikedPostsByUser(userId);
+    }
+
+    @GetMapping("/{userId}/comments")
+    public List<CommentDto> getCommentsByUser(@PathVariable Long userId) {
+        return userService.getCommentsByUser(userId);
+    }
+
+}
 
 
